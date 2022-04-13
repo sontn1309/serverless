@@ -9,6 +9,7 @@ import { TodoUpdate } from '../models/TodoUpdate'
 AWS.config.update({
     region: "us-west-2",
 });
+
 const XAWS = AWSXRay.captureAWS(AWS)
 
 export class TodosAccess {
