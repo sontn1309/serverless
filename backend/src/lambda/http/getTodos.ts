@@ -9,7 +9,7 @@ const logger = createLogger('GetTodos')
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     logger.info('GetTodos. Event', { event })
     // Write your code here
-    const todos = await getTodosForUser(event);
+    const items = await getTodosForUser(event);
 
   return {
     statusCode: 200,
@@ -17,7 +17,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       'Access-Control-Allow-Origin': '*'
     },
     body: JSON.stringify({
-      todos
+      items
     })
   }
   }

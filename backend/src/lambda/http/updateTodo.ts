@@ -18,7 +18,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const userId = getUserId(event)
   
     await updateTodo(userId, todoId, updatedTodo)
-  
+
     return {
       statusCode: 200,
       headers: {
