@@ -1,18 +1,15 @@
 import 'source-map-support/register'
 import { v4 as uuidv4 } from 'uuid';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import * as middy from 'middy'
-import { cors, httpErrorHandler } from 'middy/middlewares'
 
 import { generateUploadUrl, updateAttachmentUrl } from '../../businessLogic/todos'
 
 import { getUserId } from '../utils'
 import { createLogger } from '../../utils/logger'
 
-const logger = createLogger('deleteTodo')
+const logger = createLogger('GenerateUploadUrl')
 
-export const handler = middy(
-  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     // TODO: Return a presigned URL to upload a file for a TODO item with he provided id
     logger.info('GenerateUploadUrl. Event', { event })
 
@@ -34,12 +31,3 @@ export const handler = middy(
       })
     }
   }
-)
-
-handler
-  .use(httpErrorHandler())
-  .use(
-    cors({
-      credentials: true
-    })
-  )

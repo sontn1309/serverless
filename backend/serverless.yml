@@ -1,46 +1,40 @@
 # TODO: Change the name of the org 
-org: sontn10
-app: serverless-todo-app
 service: serverless-todo-app
 
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
-custom:
-  documentation:
-    api:
-      info:
-        version: v1.0.0
-        title: Udagram API
-        description: Serverless application
-    models:
-      - name: CreateTodoRequest
-        contentType: application/json
-        schema: ${file(models/create-todo-request.json)}
-      - name: UpdateTodoRequest
-        contentType: application/json
-        schema: ${file(models/update-todo-request.json)}
 provider:
   name: aws
   runtime: nodejs12.x
-  lambdaHashingVersion: '20201221'
-
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-west-2'}
 
   tracing:
     lambda: true
     apiGateway: true
-
   # Use these variables in the functions and resouorces section below. For example, 
   # ${self:provider.environment.ATTACHMENT_S3_BUCKET}
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: serverless-c4-todo-images-${self:provider.stage}
+    ATTACHMENT_S3_BUCKET: sontn10-todos-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
-
+custom:
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: Udagram API
+        description: Serverless
+    models:
+      - name: CreateTodoRequest
+        contentType: application/json
+        schema: ${file(models/create-todo-model.json)}
+      - name: UpdateTodoRequest
+        contentType: application/json
+        schema: ${file(models/update-todo-model.json)}
   logs:
     # Enable API Gateway logs
     restApi: true
@@ -50,9 +44,18 @@ provider:
       statements:
         - Effect: Allow
           Action:
-            - xray:PutTelemetryRecords
+            - xray:GetSamplingRules
+            - xray:GetSamplingTargets
+            - xray:GetSamplingStatisticSummaries
+            - xray:BatchGetTraces
+            - xray:GetServiceGraph
+            - xray:GetTraceGraph
+            - xray:GetTraceSummaries
+            - xray:GetGroups
+            - xray:GetGroup
             - xray:PutTraceSegments
-          Resource: "*"
+          Resource:
+            - "*"
 functions:
 
   Auth:
@@ -72,7 +75,8 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:Query
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/*
+          - dynamodb:Scan
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/{self:provider.environment.TODOS_CREATED_AT_INDEX}
   # TODO: Configure this function - 
   # Provide iamRoleStatements property. Decide the Actions and AWS Resource. 
   # To refer to an AWS resource defined in the "Resources" section, you can use "Resource: !GetAtt <resource-name>.Arn"
@@ -108,6 +112,8 @@ functions:
       - http:
           method: patch
           path: todos/{todoId}
+          cors: true
+          authorizer: Auth
           reqValidatorName: RequestBodyValidator
           documentation:
             summary: Update a new todo
@@ -128,6 +134,8 @@ functions:
       - http:
           method: delete
           path: todos/{todoId}
+          cors: true
+          authorizer: Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -143,11 +151,13 @@ functions:
       - http:
           method: post
           path: todos/{todoId}/attachment
+          cors: true
+          authorizer: Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
           - s3:PutObject
-        Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}/*
+        Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}
       - Effect: Allow
         Action:
           - dynamodb:UpdateItem
@@ -196,7 +206,7 @@ resources:
 
     # TODO: Complete the bucket properties below. 
     # Do not forget to add the CorsConfiguration propoerty
-    AttachmentsBucket:
+    AttachmentsBucketUdagram:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: ${self:provider.environment.ATTACHMENT_S3_BUCKET}
@@ -220,15 +230,17 @@ resources:
       Type: AWS::S3::BucketPolicy
       Properties:
         PolicyDocument:
-          Id: MyPolicy
+          Id: udagramPolicy
           Version: "2012-10-17"
           Statement:
             - Sid: PublicReadForGetBucketObjects
               Effect: Allow
               Principal: '*'
-              Action: 's3:GetObject'
-              Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
-        Bucket: !Ref AttachmentsBucket
+              Action: 
+                - s3:GetObject
+                - s3:PutObject
+              Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
+        Bucket: !Ref AttachmentsBucketUdagram
     RequestBodyValidator:
       Type: AWS::ApiGateway::RequestValidator
       Properties:
