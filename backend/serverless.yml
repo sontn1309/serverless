@@ -38,24 +38,6 @@ custom:
   logs:
     # Enable API Gateway logs
     restApi: true
-
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - xray:GetSamplingRules
-            - xray:GetSamplingTargets
-            - xray:GetSamplingStatisticSummaries
-            - xray:BatchGetTraces
-            - xray:GetServiceGraph
-            - xray:GetTraceGraph
-            - xray:GetTraceSummaries
-            - xray:GetGroups
-            - xray:GetGroup
-            - xray:PutTraceSegments
-          Resource:
-            - "*"
 functions:
 
   Auth:
