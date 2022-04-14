@@ -46,7 +46,7 @@ export async function updateTodo(userId: string, todoId: string, updateTodoReque
     throw new Error('User is not authorized to update item')
   }
 
-  todosAccess.updateTodoItem(todoId, updateTodoRequest as TodoUpdate)
+  await todosAccess.updateTodoItem(todoId, updateTodoRequest as TodoUpdate)
 }
 
 export async function deleteTodo(userId: string, todoId: string) {
@@ -59,7 +59,7 @@ export async function deleteTodo(userId: string, todoId: string) {
     throw new Error('User is not authorized to delete item') 
   }
 
-  todosAccess.deleteTodoItem(todoId)
+  await todosAccess.deleteTodoItem(todoId)
 }
 
 export async function generateUploadUrl(attachmentId: string): Promise<string> {
