@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Form, Button } from 'semantic-ui-react'
 import Auth from '../auth/Auth'
+import Swal from 'sweetalert2'
 import { getUploadUrl, uploadFile } from '../api/todos-api'
 
 enum UploadState {
@@ -46,7 +47,10 @@ export class EditTodo extends React.PureComponent<
 
     try {
       if (!this.state.file) {
-        alert('File should be selected')
+        Swal.fire({
+          icon: 'error',
+          text: 'File should be selected',
+        })
         return
       }
 
@@ -55,10 +59,16 @@ export class EditTodo extends React.PureComponent<
 
       this.setUploadState(UploadState.UploadingFile)
       await uploadFile(uploadUrl, this.state.file)
-
-      alert('File was uploaded!')
+      Swal.fire({
+        icon: 'success',
+        text: 'File was uploaded!'
+      })
     } catch (e: any) {
-      alert('Could not upload a file: ' + e.message)
+      Swal.fire({
+        icon: 'error',
+        title: 'Could not upload a file',
+        text:  e.message
+      })
     } finally {
       this.setUploadState(UploadState.NoUpload)
     }

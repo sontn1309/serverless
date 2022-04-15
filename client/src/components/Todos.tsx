@@ -1,6 +1,7 @@
 import dateFormat from 'dateformat'
 import { History } from 'history'
 import update from 'immutability-helper'
+import Swal from 'sweetalert2'
 import * as React from 'react'
 import {
   Button,
@@ -55,19 +56,44 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         todos: [...this.state.todos, newTodo],
         newTodoName: ''
       })
+      Swal.fire({
+        icon: 'success',
+        text: 'Create todo success!'
+      })
     } catch (e :any) {
-      alert(`Todo creation failed: ${e.message}`)
+      if(e.response.status === 400) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Todo creation failed!',
+          text: 'Invalid todo name'
+        })
+      } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Todo creation failed!',
+        text: 'Something went wrong!',
+        footer: e.message
+      })
     }
+  }
   }
 
   onTodoDelete = async (todoId: string) => {
     try {
       await deleteTodo(this.props.auth.getIdToken(), todoId)
+      Swal.fire({
+        icon: 'success',
+        text: 'Delete todo success!'
+      })
       this.setState({
         todos: this.state.todos.filter(todo => todo.todoId !== todoId)
       })
+
     } catch {
-      alert('Todo deletion failed')
+      Swal.fire({
+        icon: 'error',
+        title: 'Deletion fail',
+      })
     }
   }
 
@@ -85,7 +111,10 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         })
       })
     } catch {
-      alert('Todo deletion failed')
+      Swal.fire({
+        icon: 'error',
+        title: 'Todo deletion failed',
+      })
     }
   }
 
@@ -97,7 +126,11 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         loadingTodos: false
       })
     } catch (e: any) {
-      alert(`Failed to fetch todos: ${e.message}`)
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed to fetch todos',
+        text: e.message
+      })
     }
   }
 
@@ -129,6 +162,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
             actionPosition="left"
             placeholder="To change the world..."
             onChange={this.handleNameChange}
+            value={this.state.newTodoName}
           />
         </Grid.Column>
         <Grid.Column width={16}>
