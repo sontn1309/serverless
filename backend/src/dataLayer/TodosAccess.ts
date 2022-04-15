@@ -19,8 +19,8 @@ export class TodosAccess {
     private readonly todosByUserIndex = process.env.TODOS_CREATED_AT_INDEX
   ) {}
 
-  async todoItemExists(todoId: string): Promise<boolean> {
-    const item = await this.getTodoItem(todoId)
+  async todoItemExists(todoId: string, userId: string): Promise<boolean> {
+    const item = await this.getTodoItem(todoId, userId)
     return !!item
   }
 
@@ -37,11 +37,12 @@ async getTodoItems(userId: string): Promise<TodoItem[]> {
     return result.Items as TodoItem[]
   }
 
-  async getTodoItem(todoId: string): Promise<TodoItem> {
+  async getTodoItem(todoId: string, userId: string): Promise<TodoItem> {
     const result = await this.docClient.get({
       TableName: this.todosTable,
       Key: {
-        todoId
+        todoId,
+        userId
       }
     }).promise()
 
@@ -55,11 +56,12 @@ async getTodoItems(userId: string): Promise<TodoItem[]> {
     }).promise()
   }
 
-  async updateTodoItem(todoId: string, todoUpdate: TodoUpdate) {
+  async updateTodoItem(todoId: string, userId :string, todoUpdate: TodoUpdate) {
     await this.docClient.update({
       TableName: this.todosTable,
       Key: {
-        todoId
+        todoId,
+        userId
       },
       UpdateExpression: 'set #name = :name, dueDate = :dueDate, done = :done',
       ExpressionAttributeNames: {
@@ -73,20 +75,22 @@ async getTodoItems(userId: string): Promise<TodoItem[]> {
     }).promise()   
   }
 
-  async deleteTodoItem(todoId: string) {
+  async deleteTodoItem(todoId: string, userId: string) {
     await this.docClient.delete({
       TableName: this.todosTable,
       Key: {
-        todoId
+        todoId,
+        userId
       }
     }).promise()    
   }
 
-  async updateAttachmentUrl(todoId: string, attachmentUrl: string) {
+  async updateAttachmentUrl(todoId: string, userId: string, attachmentUrl: string) {
     await this.docClient.update({
       TableName: this.todosTable,
       Key: {
-        todoId
+        todoId,
+        userId
       },
       UpdateExpression: 'set attachmentUrl = :attachmentUrl',
       ExpressionAttributeValues: {

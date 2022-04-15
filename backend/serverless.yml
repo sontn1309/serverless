@@ -5,6 +5,8 @@ plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
+  - serverless-reqvalidator-plugin
+  - serverless-aws-documentation
 provider:
   name: aws
   runtime: nodejs12.x
@@ -17,7 +19,7 @@ provider:
   # Use these variables in the functions and resouorces section below. For example, 
   # ${self:provider.environment.ATTACHMENT_S3_BUCKET}
   environment:
-    TODOS_TABLE: Todos-${self:provider.stage}
+    TODOS_TABLE: Todos-task-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
     ATTACHMENT_S3_BUCKET: sontn10-todos-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
@@ -76,10 +78,7 @@ functions:
             summary: Create a new todo
             description: Create a new todo
             requestModels:
-              'application/json': CreateTodoRequest
-          request:
-            schemas:
-              application/json: ${file(models/create-todo-model.json)}
+              application/json: CreateTodoRequest
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -101,7 +100,7 @@ functions:
             summary: Update a new todo
             description: Update a new todo
             requestModels:
-              'application/json': UpdateTodoRequest
+              application/json: UpdateTodoRequest
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -157,7 +156,7 @@ resources:
       Properties:
         ResponseParameters:
           gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
           gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST,DELETE,PUT,PATCH'"
         ResponseType: DEFAULT_4XX
         RestApiId:
@@ -174,8 +173,10 @@ resources:
           - AttributeName: createdAt
             AttributeType: S
         KeySchema:
-          - AttributeName: todoId
+          - AttributeName: userId
             KeyType: HASH
+          - AttributeName: todoId
+            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
         GlobalSecondaryIndexes:
